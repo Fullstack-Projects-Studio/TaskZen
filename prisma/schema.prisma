@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id             String           @id @default(cuid())
+  name           String?
+  email          String           @unique
+  hashedPassword String
+  createdAt      DateTime         @default(now())
+  tasks          Task[]
+  completions    TaskCompletion[]
+  archives       MonthlyArchive[]
+  photos         TaskPhoto[]
+}
+
+model Task {
+  id            String           @id @default(cuid())
+  userId        String
+  title         String
+  description   String?
+  category      String           @default("general")
+  color         String           @default("#6366f1")
+  recurrence    Recurrence       @default(DAILY)
+  scheduledTime String?
+  isActive      Boolean          @default(true)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  completions   TaskCompletion[]
+  photos        TaskPhoto[]
+
+  @@index([userId])
+  @@index([userId, isActive])
+  @@index([createdAt])
+}
+
+model TaskCompletion {
+  id          String   @id @default(cuid())
+  taskId      String
+  userId      String
+  date        DateTime @db.Date
+  completedAt DateTime @default(now())
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, date])
+  @@index([userId, date])
+  @@index([date])
+}
+
+model MonthlyArchive {
+  id                String @id @default(cuid())
+  userId            String
+  month             Int
+  year              Int
+  totalTasks        Int
+  completedTasks    Int
+  completionRate    Float
+  streakDays        Int
+  categoryBreakdown Json
+  user              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, month, year])
+  @@index([userId, year])
+}
+
+model TaskPhoto {
+  id        String   @id @default(cuid())
+  taskId    String
+  userId    String
+  date      DateTime @db.Date
+  imageUrl  String
+  publicId  String
+  createdAt DateTime @default(now())
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, date])
+  @@index([userId, date])
+}
+
+enum Recurrence {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
