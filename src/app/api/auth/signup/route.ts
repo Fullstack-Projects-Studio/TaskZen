@@ -25,11 +25,28 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check if email was verified via OTP
+    const otp = await prisma.otp.findUnique({ where: { email } });
+    if (!otp || !otp.verified) {
+      return NextResponse.json(
+        { error: "Email not verified. Please verify your email first." },
+        { status: 400 }
+      );
+    }
+
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const user = await prisma.user.create({
-      data: { name, email, hashedPassword },
+      data: {
+        name,
+        email,
+        hashedPassword,
+        emailVerified: new Date(),
+      },
     });
+
+    // Clean up OTP record
+    await prisma.otp.delete({ where: { email } }).catch(() => {});
 
     return NextResponse.json(
       { message: "Account created successfully", userId: user.id },

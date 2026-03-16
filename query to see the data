@@ -1,0 +1,56 @@
+Query 1 - Paste this, click Run:
+  SELECT COUNT(*) FROM "User";
+
+  Query 2 - Clear the editor, paste this, click Run:
+  SELECT * FROM "User" WHERE "createdAt" >= CURRENT_DATE;
+
+  Query 3 - Clear, paste, Run:
+  SELECT u.name, u.email, COUNT(tc.id) as completions
+  FROM "User" u
+  LEFT JOIN "TaskCompletion" tc ON u.id = tc."userId"
+  GROUP BY u.id, u.name, u.email ORDER BY completions DESC;
+
+  Query 4 - Clear, paste, Run:
+  SELECT DISTINCT u.name, u.email
+  FROM "User" u
+  JOIN "TaskCompletion" tc ON u.id = tc."userId"
+  WHERE tc."completedAt" >= NOW() - INTERVAL '7 days';
+
+  Query 5 - Clear, paste, Run:
+  SELECT u.name, u.email,
+    (SELECT COUNT(*) FROM "Task" t WHERE t."userId" = u.id) as tasks,
+    (SELECT COUNT(*) FROM "TaskCompletion" tc WHERE tc."userId" = u.id) as completions,
+    (SELECT COUNT(*) FROM "TaskPhoto" tp WHERE tp."userId" = u.id) as photos
+  FROM "User" u;
+
+
+  Query 6 - delete single user and all related data
+  DELETE FROM "User" WHERE email = 'srikumaran920@gmail.com'; &
+
+
+  Step 1 - Delete all related data first:                                                                                                         DELETE FROM "TaskPhoto";                                                                                                                      
+  DELETE FROM "TaskCompletion";                                                                                                                 
+  DELETE FROM "MonthlyArchive";
+  DELETE FROM "Task";
+  DELETE FROM "Account";
+  DELETE FROM "Otp";
+
+  Step 2 - Delete all users:
+  DELETE FROM "User";
+
+  Or if you want a single query that deletes everything (since you have onDelete: Cascade):
+
+  DELETE FROM "User";
+
+
+   Action: Delete one user
+  Query: DELETE FROM "User" WHERE email = 'x@gmail.com';                                                                                          ────────────────────────────────────────                                                                                                      
+  Action: Delete all users                                                                                                                      
+  Query: DELETE FROM "User";
+  ────────────────────────────────────────
+  Action: Delete inactive users (0 completions)
+  Query: DELETE FROM "User" WHERE id NOT IN (SELECT DISTINCT "userId" FROM "TaskCompletion");
+  ────────────────────────────────────────
+  Action: Delete old users (no activity in 30 days)
+  Query: DELETE FROM "User" WHERE id NOT IN (SELECT DISTINCT "userId" FROM "TaskCompletion" WHERE "completedAt" >= NOW() - INTERVAL '30 days'); 
+  All related data (tasks, photos, completions) gets deleted automatically thanks to onDelete: Cascade in your schema.
