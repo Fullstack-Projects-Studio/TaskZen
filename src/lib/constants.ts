@@ -11,8 +11,21 @@ export const CATEGORIES = [
 
 export const RECURRENCE_OPTIONS = [
   { value: "DAILY", label: "Daily" },
-  { value: "WEEKLY", label: "Weekly" },
-  { value: "MONTHLY", label: "Monthly" },
+  { value: "WEEKLY", label: "Weekly (Mon)" },
+  { value: "MONTHLY", label: "Monthly (1st)" },
+  { value: "CUSTOM_WEEKLY", label: "Custom Weekly" },
+  { value: "CUSTOM_MONTHLY", label: "Custom Monthly" },
+  { value: "FLEXIBLE_WEEKLY", label: "Flexible Weekly" },
+] as const;
+
+export const DAYS_OF_WEEK = [
+  { value: 0, label: "Sun" },
+  { value: 1, label: "Mon" },
+  { value: 2, label: "Tue" },
+  { value: 3, label: "Wed" },
+  { value: 4, label: "Thu" },
+  { value: 5, label: "Fri" },
+  { value: 6, label: "Sat" },
 ] as const;
 
 export function getCategoryColor(category: string): string {

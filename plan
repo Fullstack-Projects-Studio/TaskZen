@@ -1,138 +1,218 @@
-TO-DO Self Task - Implementation Plan                                                                                                                         │
-│                                                                                                                                                               │
-│ Context                                                                                                                                                       │
-│                                                                                                                                                               │
-│ Building a fully custom, animated TODO list web app from scratch. Users can create tasks (gym, study, work, etc.), track daily/weekly/monthly completions     │
-│ with animated checkboxes, view a monthly grid, and see progress via pie charts and streak counters. The app uses Next.js 14 + Neon PostgreSQL (free) +        │
-│ NextAuth credentials (free) + Framer Motion for animations.                                                                                                   │
-│                                                                                                                                                               │
-│ ---                                                                                                                                                           │
-│ Tech Stack                                                                                                                                                    │
-│                                                                                                                                                               │
-│ - Framework: Next.js 14 (App Router, TypeScript)                                                                                                              │
-│ - Styling: Tailwind CSS + shadcn/ui                                                                                                                           │
-│ - Animations: Framer Motion                                                                                                                                   │
-│ - Database: Neon PostgreSQL (free tier, 0.5GB)                                                                                                                │
-│ - ORM: Prisma                                                                                                                                                 │
-│ - Auth: NextAuth.js v5 (credentials/email-password, JWT sessions)                                                                                             │
-│ - Charts: Recharts                                                                                                                                            │
-│ - State: React Query (@tanstack/react-query)                                                                                                                  │
-│ - Validation: Zod + react-hook-form                                                                                                                           │
-│ - Deployment: Vercel (free tier)                                                                                                                              │
-│                                                                                                                                                               │
-│ ---                                                                                                                                                           │
-│ Phase 0: Project Scaffolding                                                                                                                                  │
-│                                                                                                                                                               │
-│ 1. Initialize Next.js - npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir                                                         │
-│ 2. Install dependencies - prisma, next-auth, bcryptjs, recharts, framer-motion, react-query, next-themes, zod, react-hook-form, sonner                        │
-│ 3. Setup shadcn/ui - npx shadcn@latest init + add components (button, card, checkbox, dialog, input, label, select, sheet, badge, avatar, progress, tooltip,  │
-│ calendar, popover, sonner, separator, skeleton, dropdown-menu)                                                                                                │
-│ 4. Create .env - DATABASE_URL, DIRECT_URL, AUTH_SECRET, AUTH_URL                                                                                              │
-│ 5. Create Prisma schema - Users, Tasks, TaskCompletions, MonthlyArchives tables                                                                               │
-│ 6. Create Prisma singleton - src/lib/prisma.ts                                                                                                                │
-│                                                                                                                                                               │
-│ Database Schema                                                                                                                                               │
-│                                                                                                                                                               │
-│ User: id, name, email, hashedPassword, createdAt                                                                                                              │
-│ Task: id, userId, title, description, category, color, recurrence(DAILY/WEEKLY/MONTHLY), scheduledTime, isActive                                              │
-│ TaskCompletion: id, taskId, userId, date, completedAt (unique on taskId+date)                                                                                 │
-│ MonthlyArchive: id, userId, month, year, totalTasks, completedTasks, completionRate, streakDays, categoryBreakdown                                            │
-│                                                                                                                                                               │
-│ ---                                                                                                                                                           │
-│ Phase 1: Authentication                                                                                                                                       │
-│                                                                                                                                                               │
-│ 1. Auth config - src/lib/auth.config.ts + src/lib/auth.ts (credentials provider, JWT, session callbacks)                                                      │
-│ 2. Auth API route - src/app/api/auth/[...nextauth]/route.ts                                                                                                   │
-│ 3. Middleware - src/middleware.ts (protect dashboard routes)                                                                                                  │
-│ 4. Zod schemas - src/lib/validations/auth.ts (login + signup)                                                                                                 │
-│ 5. Signup API - src/app/api/auth/signup/route.ts                                                                                                              │
-│ 6. Auth pages - Login + Signup forms with react-hook-form, animated layout                                                                                    │
-│ 7. Providers - SessionProvider, ThemeProvider, QueryProvider wrappers                                                                                         │
-│ 8. Root layout - Wire up all providers + Toaster                                                                                                              │
-│                                                                                                                                                               │
-│ ---                                                                                                                                                           │
-│ Phase 2: App Shell & Navigation                                                                                                                               │
-│                                                                                                                                                               │
-│ 1. Dashboard layout - src/app/(dashboard)/layout.tsx with sidebar + header                                                                                    │
-│ 2. Sidebar - Links: Dashboard, Tasks, Monthly, Settings (with lucide icons + hover animations)                                                                │
-│ 3. Header - User avatar, theme toggle, logout button, mobile hamburger                                                                                        │
-│ 4. Mobile nav - Slide-out Sheet drawer                                                                                                                        │
-│ 5. Page transitions - src/app/template.tsx with Framer Motion fade+slide                                                                                      │
-│ 6. Animation wrappers - StaggerContainer, FadeIn, SlideIn components                                                                                          │
-│ 7. Root page - Redirect to /dashboard or /login                                                                                                               │
-│                                                                                                                                                               │
-│ ---                                                                                                                                                           │
-│ Phase 3: Task CRUD                                                                                                                                            │
-│                                                                                                                                                               │
-│ 1. Constants - Default categories with colors, recurrence options                                                                                             │
-│ 2. Zod schema - src/lib/validations/task.ts                                                                                                                   │
-│ 3. API routes - GET/POST /api/tasks, GET/PUT/DELETE /api/tasks/[taskId]                                                                                       │
-│ 4. React Query hooks - useTasks, useCreateTask, useUpdateTask, useDeleteTask                                                                                  │
-│ 5. Components - TaskCard (animated), TaskList (with filters), TaskFormDialog, TaskDeleteDialog, CategoryBadge                                                 │
-│ 6. Tasks page - /tasks with full CRUD + floating add button                                                                                                   │
-│                                                                                                                                                               │
-│ ---                                                                                                                                                           │
-│ Phase 4: Completions & Monthly View                                                                                                                           │
-│                                                                                                                                                               │
-│ 1. Completions API - GET/POST /api/completions (toggle pattern: click = create or delete)                                                                     │
-│ 2. Animated checkbox - Custom SVG checkmark with draw animation + spring bounce                                                                               │
-│ 3. React Query hooks - useCompletions, useToggleCompletion (with optimistic updates)                                                                          │
-│ 4. Monthly grid - Rows=tasks, Columns=days, Cells=animated checkboxes                                                                                         │
-│ 5. Month selector - Navigate months, past months read-only                                                                                                    │
-│ 6. Recurrence logic - Utility to compute applicable days per task per month                                                                                   │
-│ 7. Monthly page - /monthly with grid + selector                                                                                                               │
-│                                                                                                                                                               │
-│ Monthly reset is automatic: completions are date-stamped, new month = empty checkboxes.                                                                       │
-│                                                                                                                                                               │
-│ ---                                                                                                                                                           │
-│ Phase 5: Dashboard & Statistics                                                                                                                               │
-│                                                                                                                                                               │
-│ 1. Stats API - GET /api/stats?month=&year= returns completionRate, streak, categoryBreakdown                                                                  │
-│ 2. Streak calculation - Walk backwards from today counting consecutive perfect days                                                                           │
-│ 3. Stats cards - Total tasks, completed today, monthly rate, current streak (staggered fade-in)                                                               │
-│ 4. Pie chart - Recharts PieChart with animated draw, completed vs missed                                                                                      │
-│ 5. Category breakdown - Bar chart per category                                                                                                                │
-│ 6. Streak counter - Animated number counting up                                                                                                               │
-│ 7. Recent activity - Last 10 completions list                                                                                                                 │
-│ 8. Dashboard page - /dashboard assembling all components                                                                                                      │
-│ 9. Archive API - POST/GET /api/completions/archive for monthly summaries                                                                                      │
-│                                                                                                                                                               │
-│ ---                                                                                                                                                           │
-│ Phase 6: Settings & Polish                                                                                                                                    │
-│                                                                                                                                                               │
-│ 1. Settings page - Profile, theme selector, manage categories                                                                                                 │
-│ 2. Dark mode polish - Ensure all custom colors work in dark theme                                                                                             │
-│ 3. Responsive polish - Sidebar collapse, horizontal scroll grid, stacked cards                                                                                │
-│ 4. Loading states - Skeleton screens per page (loading.tsx)                                                                                                   │
-│ 5. Error states - Error boundaries per route (error.tsx)                                                                                                      │
-│ 6. Animation final pass - Review all transitions, add micro-interactions                                                                                      │
-│                                                                                                                                                               │
-│ ---                                                                                                                                                           │
-│ Key Files                                                                                                                                                     │
-│ ┌───────────────────────────────────────────────────┬─────────────────────────────────────────┐                                                               │
-│ │                       File                        │                 Purpose                 │                                                               │
-│ ├───────────────────────────────────────────────────┼─────────────────────────────────────────┤                                                               │
-│ │ prisma/schema.prisma                              │ Data model - everything depends on this │                                                               │
-│ ├───────────────────────────────────────────────────┼─────────────────────────────────────────┤                                                               │
-│ │ src/lib/auth.config.ts                            │ NextAuth credentials + JWT config       │                                                               │
-│ ├───────────────────────────────────────────────────┼─────────────────────────────────────────┤                                                               │
-│ │ src/lib/prisma.ts                                 │ Database client singleton               │                                                               │
-│ ├───────────────────────────────────────────────────┼─────────────────────────────────────────┤                                                               │
-│ │ src/app/(dashboard)/layout.tsx                    │ Authenticated shell layout              │                                                               │
-│ ├───────────────────────────────────────────────────┼─────────────────────────────────────────┤                                                               │
-│ │ src/components/monthly/monthly-grid.tsx           │ Core monthly checkbox grid              │                                                               │
-│ ├───────────────────────────────────────────────────┼─────────────────────────────────────────┤                                                               │
-│ │ src/components/dashboard/completion-pie-chart.tsx │ Animated progress chart                 │                                                               │
-│ ├───────────────────────────────────────────────────┼─────────────────────────────────────────┤                                                               │
-│ │ src/components/tasks/animated-checkbox.tsx        │ Custom animated checkbox                │                                                               │
-│ └───────────────────────────────────────────────────┴─────────────────────────────────────────┘                                                               │
-│ ---                                                                                                                                                           │
-│ Verification Plan                                                                                                                                             │
-│                                                                                                                                                               │
-│ 1. Auth: Sign up, log in, log out, verify protected routes redirect                                                                                           │
-│ 2. Tasks: Create, edit, delete tasks; verify categories and recurrence                                                                                        │
-│ 3. Monthly: Toggle checkboxes, verify persistence, change months, check read-only past                                                                        │
-│ 4. Dashboard: Verify pie chart data matches completions, streak count is accurate                                                                             │
-│ 5. Responsive: Test on mobile viewport (375px) and desktop                                                                                                    │
-│ 6. Dark mode: Toggle theme, verify all components render correctly                                                                                            │
-│ 7. Run npm run build to verify no build errors    
+ TaskZen - 5 Major Features Implementation Plan
+
+ Context
+
+ TaskZen is a daily habit/todo tracker with stats, streaks, photo evidence, and OAuth. To transform it from a "project" into a tool users stick 
+  with daily, we need features focused on Automation, Accountability, and Psychology.
+
+ ---
+ Database Schema Changes (Single Migration)
+
+ File: prisma/schema.prisma
+
+ New enum values:
+
+ CUSTOM_WEEKLY, CUSTOM_MONTHLY, FLEXIBLE_WEEKLY added to Recurrence enum
+
+ Task model - add field:
+
+ recurrenceDays  Json?   // number[] for days-of-week or dates-of-month, or {targetCount} for flexible
+
+ User model - add fields:
+
+ xp              Int       @default(0)
+ level           Int       @default(1)
+ bestStreak      Int       @default(0)
+ morningReminder String?   // HH:MM format
+ eveningReminder String?   // HH:MM format
+ + relations to DailyReflection, FocusSession
+
+ New models:
+
+ DailyReflection: id, userId, date, content, mood(1-5), createdAt, updatedAt  @@unique([userId, date])
+ FocusSession: id, userId, taskId?, duration, completedAt, date  @@index([userId, date])
+
+ ---
+ Implementation Order
+
+ Feature 1: Smart Recurring Tasks
+
+ Why: Reduces decision fatigue - app prepares itself for users every morning.
+
+ Changes:
+ ┌───────────────────────────────────────────┬──────────────────────────────────────────────────────────────────────────────┐
+ │                   File                    │                                    Change                                    │
+ ├───────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────┤
+ │ prisma/schema.prisma                      │ Add CUSTOM_WEEKLY/CUSTOM_MONTHLY/FLEXIBLE_WEEKLY enum + recurrenceDays field │
+ ├───────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────┤
+ │ src/lib/recurrence.ts                     │ Handle new recurrence types in getApplicableDays()                           │
+ ├───────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────┤
+ │ src/lib/notifications.ts                  │ Update isTaskApplicableToday() for new types                                 │
+ ├───────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────┤
+ │ src/lib/validations/task.ts               │ Add recurrenceDays validation with refine()                                  │
+ ├───────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────┤
+ │ src/lib/constants.ts                      │ Add new RECURRENCE_OPTIONS + DAYS_OF_WEEK constant                           │
+ ├───────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────┤
+ │ src/components/tasks/task-form-dialog.tsx │ Day picker UI (toggle buttons for Sun-Sat, date grid for monthly)            │
+ ├───────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────┤
+ │ src/components/tasks/task-card.tsx        │ Show "Tue, Thu, Sat" instead of just "Weekly"                                │
+ ├───────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────┤
+ │ src/components/monthly/monthly-grid.tsx   │ Pass recurrenceDays to getApplicableDays()                                   │
+ ├───────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────┤
+ │ src/app/api/stats/route.ts                │ Update applicable task count calculation                                     │
+ ├───────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────┤
+ │ src/app/api/completions/archive/route.ts  │ Same update for archive calculation                                          │
+ ├───────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────┤
+ │ src/hooks/use-tasks.ts                    │ Extend Task interface with recurrenceDays                                    │
+ ├───────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────┤
+ │ src/hooks/use-notifications.ts            │ Pass recurrenceDays to isTaskApplicableToday()                               │
+ └───────────────────────────────────────────┴──────────────────────────────────────────────────────────────────────────────┘
+ Feature 2: Focus Mode & Pomodoro Timer
+
+ Why: Transforms app from passive tracker into active productivity tool.
+
+ New files:
+ ┌────────────────────────────────────────────────┬───────────────────────────────────────────────────────────────┐
+ │                      File                      │                            Purpose                            │
+ ├────────────────────────────────────────────────┼───────────────────────────────────────────────────────────────┤
+ │ src/components/focus/focus-mode.tsx            │ Full-screen overlay with timer, task title, start/pause/reset │
+ ├────────────────────────────────────────────────┼───────────────────────────────────────────────────────────────┤
+ │ src/components/focus/timer-circle.tsx          │ Circular SVG countdown animation                              │
+ ├────────────────────────────────────────────────┼───────────────────────────────────────────────────────────────┤
+ │ src/components/focus/focus-settings-dialog.tsx │ Configure work/break durations (localStorage)                 │
+ ├────────────────────────────────────────────────┼───────────────────────────────────────────────────────────────┤
+ │ src/hooks/use-focus.ts                         │ Timer state management with useRef interval                   │
+ ├────────────────────────────────────────────────┼───────────────────────────────────────────────────────────────┤
+ │ src/components/providers/focus-provider.tsx    │ Context so any component can trigger focus                    │
+ ├────────────────────────────────────────────────┼───────────────────────────────────────────────────────────────┤
+ │ src/app/api/focus-sessions/route.ts            │ POST to save sessions, GET for stats                          │
+ └────────────────────────────────────────────────┴───────────────────────────────────────────────────────────────┘
+ Modified files:
+ ┌────────────────────────────────────┬──────────────────────────────────────────┐
+ │                File                │                  Change                  │
+ ├────────────────────────────────────┼──────────────────────────────────────────┤
+ │ src/components/tasks/task-card.tsx │ Add "Focus" (Timer icon) button          │
+ ├────────────────────────────────────┼──────────────────────────────────────────┤
+ │ src/components/tasks/task-list.tsx │ Pass onStartFocus to TaskCard            │
+ ├────────────────────────────────────┼──────────────────────────────────────────┤
+ │ src/components/providers/index.tsx │ Add FocusProvider                        │
+ ├────────────────────────────────────┼──────────────────────────────────────────┤
+ │ src/app/(dashboard)/layout.tsx     │ Render FocusMode overlay at layout level │
+ └────────────────────────────────────┴──────────────────────────────────────────┘
+ Feature 3: Progressive Streaks & Gamification
+
+ Why: "Fear of breaking the chain" keeps users coming back daily.
+
+ New files:
+ ┌────────────────────────────────────────────┬───────────────────────────────────────────────────┐
+ │                    File                    │                      Purpose                      │
+ ├────────────────────────────────────────────┼───────────────────────────────────────────────────┤
+ │ src/lib/gamification.ts                    │ XP constants, level thresholds, badge definitions │
+ ├────────────────────────────────────────────┼───────────────────────────────────────────────────┤
+ │ src/app/api/user/gamification/route.ts     │ GET user XP/level/bestStreak/totalCompletions     │
+ ├────────────────────────────────────────────┼───────────────────────────────────────────────────┤
+ │ src/components/dashboard/xp-level-card.tsx │ Level + XP progress bar card                      │
+ ├────────────────────────────────────────────┼───────────────────────────────────────────────────┤
+ │ src/components/dashboard/badges-card.tsx   │ Grid of earned/locked badges                      │
+ └────────────────────────────────────────────┴───────────────────────────────────────────────────┘
+ Modified files:
+ ┌──────────────────────────────────────────┬───────────────────────────────────────────────────────────────────────┐
+ │                   File                   │                                Change                                 │
+ ├──────────────────────────────────────────┼───────────────────────────────────────────────────────────────────────┤
+ │ src/app/api/completions/route.ts         │ Award XP on completion (10 XP, 2x for 7+ streak), subtract on uncheck │
+ ├──────────────────────────────────────────┼───────────────────────────────────────────────────────────────────────┤
+ │ src/app/api/stats/route.ts               │ Update bestStreak on User, include xp/level in response               │
+ ├──────────────────────────────────────────┼───────────────────────────────────────────────────────────────────────┤
+ │ src/hooks/use-stats.ts                   │ Extend Stats interface with xp, level, bestStreak                     │
+ ├──────────────────────────────────────────┼───────────────────────────────────────────────────────────────────────┤
+ │ src/components/dashboard/stats-cards.tsx │ Add Level stat card                                                   │
+ ├──────────────────────────────────────────┼───────────────────────────────────────────────────────────────────────┤
+ │ src/app/(dashboard)/dashboard/page.tsx   │ Add XpLevelCard + BadgesCard to grid                                  │
+ └──────────────────────────────────────────┴───────────────────────────────────────────────────────────────────────┘
+ XP System:
+ - 10 XP per completion
+ - 2x bonus at 7+ day streak
+ - Levels: 1(0), 2(100), 3(250), 4(500), 5(850)... exponential curve
+ - 8 badges: First Step, Week Warrior(7-streak), Month Master(30-streak), Centurion(100 tasks), Rising Star(lvl 5), Veteran(lvl 10), XP
+ Hoarder(1000xp), Fortnight Focus(14-streak)
+
+ Feature 4: Smart Reminders
+
+ Why: Re-engages users who forget to open the app.
+
+ New files:
+ ┌───────────────────────────────────────┬──────────────────────────────────┐
+ │                 File                  │             Purpose              │
+ ├───────────────────────────────────────┼──────────────────────────────────┤
+ │ src/app/api/user/preferences/route.ts │ GET/PUT reminder times           │
+ ├───────────────────────────────────────┼──────────────────────────────────┤
+ │ src/hooks/use-preferences.ts          │ React Query hook for preferences │
+ └───────────────────────────────────────┴──────────────────────────────────┘
+ Modified files:
+ ┌───────────────────────────────────────────────────┬─────────────────────────────────────────────────────┐
+ │                       File                        │                       Change                        │
+ ├───────────────────────────────────────────────────┼─────────────────────────────────────────────────────┤
+ │ src/hooks/use-notifications.ts                    │ Add morning/evening reminder checks to polling loop │
+ ├───────────────────────────────────────────────────┼─────────────────────────────────────────────────────┤
+ │ src/components/settings/notification-settings.tsx │ Add morning/evening time inputs with toggles        │
+ └───────────────────────────────────────────────────┴─────────────────────────────────────────────────────┘
+ Logic:
+ - Morning nudge (default 09:00): "Good morning! You have X tasks today" if no completions yet
+ - Evening call (default 21:00): "X tasks remaining!" if incomplete tasks exist
+ - Dedup via localStorage keys per day
+
+ Feature 5: Review & Reflect (Daily Journaling)
+
+ Why: Bridges task manager and bullet journal - adds emotional value.
+
+ New files:
+ ┌────────────────────────────────────────────────┬──────────────────────────────────────┐
+ │                      File                      │               Purpose                │
+ ├────────────────────────────────────────────────┼──────────────────────────────────────┤
+ │ src/lib/validations/reflection.ts              │ Zod schema for reflections           │
+ ├────────────────────────────────────────────────┼──────────────────────────────────────┤
+ │ src/hooks/use-reflections.ts                   │ CRUD hooks for reflections           │
+ ├────────────────────────────────────────────────┼──────────────────────────────────────┤
+ │ src/app/api/reflections/route.ts               │ GET/POST/DELETE reflections          │
+ ├────────────────────────────────────────────────┼──────────────────────────────────────┤
+ │ src/app/(dashboard)/reflect/page.tsx           │ Reflection page with form + calendar │
+ ├────────────────────────────────────────────────┼──────────────────────────────────────┤
+ │ src/components/reflect/reflection-form.tsx     │ Textarea + mood emoji selector (1-5) │
+ ├────────────────────────────────────────────────┼──────────────────────────────────────┤
+ │ src/components/reflect/reflection-calendar.tsx │ Month grid with mood dots            │
+ ├────────────────────────────────────────────────┼──────────────────────────────────────┤
+ │ src/components/reflect/reflection-card.tsx     │ Single reflection display card       │
+ ├────────────────────────────────────────────────┼──────────────────────────────────────┤
+ │ src/components/dashboard/reflection-prompt.tsx │ Dashboard CTA: "How was your day?"   │
+ └────────────────────────────────────────────────┴──────────────────────────────────────┘
+ Modified files:
+ ┌────────────────────────────────────────┬────────────────────────────────────────┐
+ │                  File                  │                 Change                 │
+ ├────────────────────────────────────────┼────────────────────────────────────────┤
+ │ src/components/layout/sidebar.tsx      │ Add "Reflect" nav item (BookOpen icon) │
+ ├────────────────────────────────────────┼────────────────────────────────────────┤
+ │ src/app/(dashboard)/dashboard/page.tsx │ Add ReflectionPrompt card              │
+ └────────────────────────────────────────┴────────────────────────────────────────┘
+ Add shadcn component: npx shadcn@latest add textarea
+
+ ---
+ File Count Summary
+
+ - ~21 new files to create
+ - ~23 existing files to modify
+ - 1 prisma migration (all schema changes combined)
+
+ ---
+ Verification Plan
+
+ 1. Smart Recurrence: Create tasks with Custom Weekly (Tue+Thu), Custom Monthly (1st+15th), Flexible (3/week). Verify monthly grid shows        
+ correct applicable days. Verify stats calculation matches.
+ 2. Focus Mode: Click Focus on a task → timer starts → pause/resume → complete session → verify session saved.
+ 3. Gamification: Complete a task → verify XP increases. Build 7-day streak → verify 2x bonus. Check badges unlock correctly. Verify bestStreak 
+  updates.
+ 4. Smart Reminders: Set morning reminder to current time → wait → verify notification fires. Set evening reminder → verify it shows remaining  
+ tasks count.
+ 5. Reflections: Write today's reflection with mood → save → verify in calendar view. Navigate to past dates → verify read-only display. Check  
+ dashboard prompt card.
+ 6. Build: Run npm run build to verify no build errors.
+╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌

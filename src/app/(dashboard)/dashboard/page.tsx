@@ -7,6 +7,10 @@ import { CategoryChart } from "@/components/dashboard/category-chart";
 import { StreakCounter } from "@/components/dashboard/streak-counter";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
 import { MotivationCard } from "@/components/dashboard/motivation-card";
+import { XpLevelCard } from "@/components/dashboard/xp-level-card";
+import { BadgesCard } from "@/components/dashboard/badges-card";
+import { ReflectionPrompt } from "@/components/dashboard/reflection-prompt";
+import { RoutineSummaryCard } from "@/components/dashboard/routine-summary-card";
 import { useStats } from "@/hooks/use-stats";
 import { usePhotoStats } from "@/hooks/use-photo-stats";
 
@@ -32,6 +36,16 @@ export default function DashboardPage() {
         <CompletionPieChart stats={stats} isLoading={isLoading} />
         <CategoryChart stats={stats} isLoading={isLoading} />
         <StreakCounter streak={stats?.streak ?? 0} isLoading={isLoading} />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <XpLevelCard stats={stats} isLoading={isLoading} />
+        <BadgesCard stats={stats} totalCompletions={stats?.totalCompletions ?? 0} isLoading={isLoading} />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <ReflectionPrompt />
+        <RoutineSummaryCard />
       </div>
 
       <MotivationCard photoStats={photoStats} isLoading={photoStatsLoading} />

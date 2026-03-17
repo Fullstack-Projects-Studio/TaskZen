@@ -95,11 +95,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.id = user.id;
       }
+
+      // Verify user still exists in database on every request
+      if (token.id) {
+        const existingUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { id: true },
+        });
+
+        if (!existingUser) {
+          // User has been deleted — invalidate the token
+          token.id = null;
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
-      if (token && session.user) {
+      if (token?.id && session.user) {
         session.user.id = token.id as string;
+      } else {
+        // User was deleted — return empty session to force logout
+        return {} as any;
       }
       return session;
     },

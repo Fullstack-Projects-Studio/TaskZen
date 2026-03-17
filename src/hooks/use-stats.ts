@@ -16,6 +16,9 @@ export interface Stats {
     completedAt: string;
     task: { title: string; category: string; color: string };
   }>;
+  xp: number;
+  level: number;
+  bestStreak: number;
 }
 
 export function useStats(month?: number, year?: number) {

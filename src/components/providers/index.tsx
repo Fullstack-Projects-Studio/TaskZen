@@ -5,6 +5,7 @@ import { ThemeProvider } from "./theme-provider";
 import { QueryProvider } from "./query-provider";
 import { SidebarProvider } from "./sidebar-provider";
 import { NotificationProvider } from "./notification-provider";
+import { FocusProvider } from "./focus-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "sonner";
 
@@ -14,12 +15,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ThemeProvider>
         <QueryProvider>
           <NotificationProvider>
-            <SidebarProvider>
-              <TooltipProvider>
-                {children}
-                <Toaster richColors position="top-right" />
-              </TooltipProvider>
-            </SidebarProvider>
+            <FocusProvider>
+              <SidebarProvider>
+                <TooltipProvider>
+                  {children}
+                  <Toaster richColors position="top-right" />
+                </TooltipProvider>
+              </SidebarProvider>
+            </FocusProvider>
           </NotificationProvider>
         </QueryProvider>
       </ThemeProvider>

@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ListTodo, CalendarDays, Settings, CheckSquare } from "lucide-react";
+import { LayoutDashboard, ListTodo, CalendarDays, Settings, CheckSquare, BookOpen, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/tasks", label: "Tasks", icon: ListTodo },
   { href: "/monthly", label: "Monthly", icon: CalendarDays },
+  { href: "/reflect", label: "Reflect", icon: BookOpen },
+  { href: "/routine", label: "Routine", icon: Clock },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

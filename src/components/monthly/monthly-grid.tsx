@@ -102,7 +102,7 @@ export function MonthlyGrid({
         </thead>
         <tbody>
           {activeTasks.map((task, idx) => {
-            const applicableDays = getApplicableDays(task.recurrence, year, month);
+            const applicableDays = getApplicableDays(task.recurrence, year, month, task.recurrenceDays);
             const applicableDayNumbers = new Set(
               applicableDays.map((d) => d.getDate())
             );

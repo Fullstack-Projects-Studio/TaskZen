@@ -9,18 +9,28 @@ datasource db {
 }
 
 model User {
-  id             String           @id @default(cuid())
-  name           String?
-  email          String           @unique
-  emailVerified  DateTime?
-  hashedPassword String?
-  image          String?
-  createdAt      DateTime         @default(now())
-  accounts       Account[]
-  tasks          Task[]
-  completions    TaskCompletion[]
-  archives       MonthlyArchive[]
-  photos         TaskPhoto[]
+  id              String           @id @default(cuid())
+  name            String?
+  email           String           @unique
+  emailVerified   DateTime?
+  hashedPassword  String?
+  image           String?
+  createdAt       DateTime         @default(now())
+  xp              Int              @default(0)
+  level           Int              @default(1)
+  bestStreak      Int              @default(0)
+  morningReminder String?
+  eveningReminder String?
+  wakeUpTime      String?
+  sleepTime       String?
+  accounts        Account[]
+  tasks           Task[]
+  completions     TaskCompletion[]
+  archives        MonthlyArchive[]
+  photos          TaskPhoto[]
+  reflections     DailyReflection[]
+  focusSessions   FocusSession[]
+  scheduleBlocks  ScheduleBlock[]
 }
 
 model Account {
@@ -53,20 +63,22 @@ model Otp {
 }
 
 model Task {
-  id            String           @id @default(cuid())
-  userId        String
-  title         String
-  description   String?
-  category      String           @default("general")
-  color         String           @default("#6366f1")
-  recurrence    Recurrence       @default(DAILY)
-  scheduledTime String?
-  isActive      Boolean          @default(true)
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  completions   TaskCompletion[]
-  photos        TaskPhoto[]
+  id             String           @id @default(cuid())
+  userId         String
+  title          String
+  description    String?
+  category       String           @default("general")
+  color          String           @default("#6366f1")
+  recurrence     Recurrence       @default(DAILY)
+  recurrenceDays Json?
+  scheduledTime  String?
+  isActive       Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  completions    TaskCompletion[]
+  photos         TaskPhoto[]
+  focusSessions  FocusSession[]
 
   @@index([userId])
   @@index([userId, isActive])
@@ -118,8 +130,59 @@ model TaskPhoto {
   @@index([userId, date])
 }
 
+model DailyReflection {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime @db.Date
+  content   String
+  mood      Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+}
+
+model FocusSession {
+  id          String   @id @default(cuid())
+  userId      String
+  taskId      String?
+  duration    Int
+  completedAt DateTime @default(now())
+  date        DateTime @db.Date
+  task        Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+}
+
+model ScheduleBlock {
+  id        String   @id @default(cuid())
+  userId    String
+  label     String
+  startTime String
+  endTime   String
+  days      Json
+  type      BlockType @default(CUSTOM)
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
 enum Recurrence {
   DAILY
   WEEKLY
   MONTHLY
+  CUSTOM_WEEKLY
+  CUSTOM_MONTHLY
+  FLEXIBLE_WEEKLY
+}
+
+enum BlockType {
+  WORK
+  SCHOOL
+  COLLEGE
+  CUSTOM
 }

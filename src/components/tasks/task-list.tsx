@@ -16,6 +16,7 @@ import {
 import { CATEGORIES } from "@/lib/constants";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToggleTaskActive } from "@/hooks/use-tasks";
+import { useFocusContext } from "@/components/providers/focus-provider";
 import type { Task } from "@/hooks/use-tasks";
 import { Search } from "lucide-react";
 
@@ -30,6 +31,7 @@ export function TaskList({ tasks, isLoading }: TaskListProps) {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const toggleActive = useToggleTaskActive();
+  const { startFocus } = useFocusContext();
 
   const filteredTasks = tasks?.filter((task) => {
     const matchesSearch = task.title.toLowerCase().includes(search.toLowerCase());
@@ -91,6 +93,7 @@ export function TaskList({ tasks, isLoading }: TaskListProps) {
                 onToggleActive={(t) =>
                   toggleActive.mutate({ id: t.id, isActive: !t.isActive })
                 }
+                onStartFocus={startFocus}
               />
             ))}
           </AnimatePresence>

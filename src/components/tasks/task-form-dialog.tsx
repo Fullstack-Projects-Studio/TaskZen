@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { taskSchema, type TaskInput } from "@/lib/validations/task";
-import { CATEGORIES, RECURRENCE_OPTIONS } from "@/lib/constants";
+import { CATEGORIES, RECURRENCE_OPTIONS, DAYS_OF_WEEK } from "@/lib/constants";
 import { useCreateTask, useUpdateTask, type Task } from "@/hooks/use-tasks";
 
 interface TaskFormDialogProps {
@@ -44,6 +44,7 @@ export function TaskFormDialog({ open, onOpenChange, task }: TaskFormDialogProps
       color: "#6366f1",
       recurrence: "DAILY",
       scheduledTime: "",
+      recurrenceDays: undefined,
     },
   });
 
@@ -56,6 +57,7 @@ export function TaskFormDialog({ open, onOpenChange, task }: TaskFormDialogProps
         color: task.color,
         recurrence: task.recurrence,
         scheduledTime: task.scheduledTime || "",
+        recurrenceDays: task.recurrenceDays ?? undefined,
       });
     } else {
       reset({
@@ -65,6 +67,7 @@ export function TaskFormDialog({ open, onOpenChange, task }: TaskFormDialogProps
         color: "#6366f1",
         recurrence: "DAILY",
         scheduledTime: "",
+        recurrenceDays: undefined,
       });
     }
   }, [task, reset]);
@@ -79,12 +82,45 @@ export function TaskFormDialog({ open, onOpenChange, task }: TaskFormDialogProps
   }
 
   const selectedCategory = watch("category");
+  const selectedRecurrence = watch("recurrence");
+  const selectedRecurrenceDays = watch("recurrenceDays");
 
   function handleCategoryChange(value: string | null) {
     if (!value) return;
     setValue("category", value);
     const cat = CATEGORIES.find((c) => c.value === value);
     if (cat) setValue("color", cat.color);
+  }
+
+  function handleRecurrenceChange(value: string | null) {
+    if (!value) return;
+    setValue("recurrence", value as TaskInput["recurrence"]);
+    // Reset recurrenceDays when switching types
+    if (value === "CUSTOM_WEEKLY") {
+      setValue("recurrenceDays", []);
+    } else if (value === "CUSTOM_MONTHLY") {
+      setValue("recurrenceDays", []);
+    } else if (value === "FLEXIBLE_WEEKLY") {
+      setValue("recurrenceDays", { targetCount: 3 });
+    } else {
+      setValue("recurrenceDays", undefined);
+    }
+  }
+
+  function toggleDay(day: number) {
+    const current = Array.isArray(selectedRecurrenceDays) ? selectedRecurrenceDays : [];
+    const updated = current.includes(day)
+      ? current.filter((d: number) => d !== day)
+      : [...current, day].sort((a: number, b: number) => a - b);
+    setValue("recurrenceDays", updated, { shouldValidate: true });
+  }
+
+  function toggleMonthDate(date: number) {
+    const current = Array.isArray(selectedRecurrenceDays) ? selectedRecurrenceDays : [];
+    const updated = current.includes(date)
+      ? current.filter((d: number) => d !== date)
+      : [...current, date].sort((a: number, b: number) => a - b);
+    setValue("recurrenceDays", updated, { shouldValidate: true });
   }
 
   return (
@@ -131,8 +167,8 @@ export function TaskFormDialog({ open, onOpenChange, task }: TaskFormDialogProps
             <div className="space-y-2">
               <Label>Recurrence</Label>
               <Select
-                value={watch("recurrence")}
-                onValueChange={(v) => { if (v) setValue("recurrence", v as TaskInput["recurrence"]); }}
+                value={selectedRecurrence}
+                onValueChange={handleRecurrenceChange}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -147,6 +183,94 @@ export function TaskFormDialog({ open, onOpenChange, task }: TaskFormDialogProps
               </Select>
             </div>
           </div>
+
+          {selectedRecurrence === "CUSTOM_WEEKLY" && (
+            <div className="space-y-2">
+              <Label>Select Days</Label>
+              <div className="flex gap-1.5 flex-wrap">
+                {DAYS_OF_WEEK.map((day) => {
+                  const selected = Array.isArray(selectedRecurrenceDays) && selectedRecurrenceDays.includes(day.value);
+                  return (
+                    <button
+                      key={day.value}
+                      type="button"
+                      onClick={() => toggleDay(day.value)}
+                      className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${
+                        selected
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background text-muted-foreground border-border hover:bg-accent"
+                      }`}
+                    >
+                      {day.label}
+                    </button>
+                  );
+                })}
+              </div>
+              {errors.recurrenceDays && (
+                <p className="text-sm text-destructive">{String(errors.recurrenceDays.message || "Invalid")}</p>
+              )}
+            </div>
+          )}
+
+          {selectedRecurrence === "CUSTOM_MONTHLY" && (
+            <div className="space-y-2">
+              <Label>Select Dates</Label>
+              <div className="grid grid-cols-7 gap-1">
+                {Array.from({ length: 31 }, (_, i) => i + 1).map((date) => {
+                  const selected = Array.isArray(selectedRecurrenceDays) && selectedRecurrenceDays.includes(date);
+                  return (
+                    <button
+                      key={date}
+                      type="button"
+                      onClick={() => toggleMonthDate(date)}
+                      className={`px-1 py-1 rounded text-xs font-medium border transition-colors ${
+                        selected
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background text-muted-foreground border-border hover:bg-accent"
+                      }`}
+                    >
+                      {date}
+                    </button>
+                  );
+                })}
+              </div>
+              {errors.recurrenceDays && (
+                <p className="text-sm text-destructive">{String(errors.recurrenceDays.message || "Invalid")}</p>
+              )}
+            </div>
+          )}
+
+          {selectedRecurrence === "FLEXIBLE_WEEKLY" && (
+            <div className="space-y-2">
+              <Label>Times per week</Label>
+              <Select
+                value={String(
+                  selectedRecurrenceDays &&
+                    typeof selectedRecurrenceDays === "object" &&
+                    !Array.isArray(selectedRecurrenceDays)
+                    ? selectedRecurrenceDays.targetCount
+                    : 3
+                )}
+                onValueChange={(v) => {
+                  if (v) setValue("recurrenceDays", { targetCount: parseInt(v) }, { shouldValidate: true });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+                    <SelectItem key={n} value={String(n)}>
+                      {n}x per week
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.recurrenceDays && (
+                <p className="text-sm text-destructive">{String(errors.recurrenceDays.message || "Invalid")}</p>
+              )}
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="scheduledTime">Scheduled Time (optional)</Label>

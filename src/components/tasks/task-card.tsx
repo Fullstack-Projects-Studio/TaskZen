@@ -1,10 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Pencil, Trash2, Clock, Repeat, Pause, Play } from "lucide-react";
+import { Pencil, Trash2, Clock, Repeat, Pause, Play, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CategoryBadge } from "./category-badge";
+import { DAYS_OF_WEEK } from "@/lib/constants";
 import type { Task } from "@/hooks/use-tasks";
 
 interface TaskCardProps {
@@ -12,9 +13,42 @@ interface TaskCardProps {
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
   onToggleActive: (task: Task) => void;
+  onStartFocus?: (task: Task) => void;
 }
 
-export function TaskCard({ task, onEdit, onDelete, onToggleActive }: TaskCardProps) {
+function getRecurrenceLabel(task: Task): string {
+  switch (task.recurrence) {
+    case "CUSTOM_WEEKLY": {
+      const days = Array.isArray(task.recurrenceDays) ? task.recurrenceDays : [];
+      return days.map((d: number) => DAYS_OF_WEEK.find((dw) => dw.value === d)?.label ?? "").join(", ");
+    }
+    case "CUSTOM_MONTHLY": {
+      const dates = Array.isArray(task.recurrenceDays) ? task.recurrenceDays : [];
+      return dates.map((d: number) => `${d}${getOrdinal(d)}`).join(", ");
+    }
+    case "FLEXIBLE_WEEKLY": {
+      const rd = task.recurrenceDays;
+      const count = rd && typeof rd === "object" && !Array.isArray(rd) && "targetCount" in rd
+        ? (rd as { targetCount: number }).targetCount
+        : 3;
+      return `${count}x/week`;
+    }
+    default:
+      return task.recurrence;
+  }
+}
+
+function getOrdinal(n: number): string {
+  if (n > 3 && n < 21) return "th";
+  switch (n % 10) {
+    case 1: return "st";
+    case 2: return "nd";
+    case 3: return "rd";
+    default: return "th";
+  }
+}
+
+export function TaskCard({ task, onEdit, onDelete, onToggleActive, onStartFocus }: TaskCardProps) {
   return (
     <motion.div
       layout
@@ -51,7 +85,7 @@ export function TaskCard({ task, onEdit, onDelete, onToggleActive }: TaskCardPro
                 <CategoryBadge category={task.category} color={task.color} />
                 <span className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Repeat className="h-3 w-3" />
-                  {task.recurrence}
+                  {getRecurrenceLabel(task)}
                 </span>
                 {task.scheduledTime && (
                   <span className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -62,6 +96,17 @@ export function TaskCard({ task, onEdit, onDelete, onToggleActive }: TaskCardPro
               </div>
             </div>
             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              {onStartFocus && task.isActive && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  title="Start Focus"
+                  onClick={() => onStartFocus(task)}
+                >
+                  <Timer className="h-3.5 w-3.5 text-orange-500" />
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="icon"

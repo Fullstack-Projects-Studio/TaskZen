@@ -1,14 +1,19 @@
 import { getDay, getDate } from "date-fns";
 
+type RecurrenceType =
+  | "DAILY"
+  | "WEEKLY"
+  | "MONTHLY"
+  | "CUSTOM_WEEKLY"
+  | "CUSTOM_MONTHLY"
+  | "FLEXIBLE_WEEKLY";
+
 /**
  * Returns true if a task with the given recurrence should fire today.
- * Mirrors the logic in recurrence.ts:
- *   DAILY   → every day
- *   WEEKLY  → Mondays (getDay === 1)
- *   MONTHLY → 1st of the month
  */
 export function isTaskApplicableToday(
-  recurrence: "DAILY" | "WEEKLY" | "MONTHLY"
+  recurrence: RecurrenceType,
+  recurrenceDays?: number[] | { targetCount: number } | null
 ): boolean {
   const today = new Date();
 
@@ -16,9 +21,20 @@ export function isTaskApplicableToday(
     case "DAILY":
       return true;
     case "WEEKLY":
-      return getDay(today) === 1; // Monday
+      return getDay(today) === 1;
     case "MONTHLY":
-      return getDate(today) === 1; // 1st of month
+      return getDate(today) === 1;
+    case "CUSTOM_WEEKLY": {
+      const days = Array.isArray(recurrenceDays) ? recurrenceDays : [];
+      return days.includes(getDay(today));
+    }
+    case "CUSTOM_MONTHLY": {
+      const dates = Array.isArray(recurrenceDays) ? recurrenceDays : [];
+      return dates.includes(getDate(today));
+    }
+    case "FLEXIBLE_WEEKLY":
+      // Flexible tasks are always applicable - user decides when to do them
+      return true;
     default:
       return true;
   }

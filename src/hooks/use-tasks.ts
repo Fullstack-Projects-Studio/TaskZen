@@ -11,7 +11,8 @@ export interface Task {
   description: string | null;
   category: string;
   color: string;
-  recurrence: "DAILY" | "WEEKLY" | "MONTHLY";
+  recurrence: "DAILY" | "WEEKLY" | "MONTHLY" | "CUSTOM_WEEKLY" | "CUSTOM_MONTHLY" | "FLEXIBLE_WEEKLY";
+  recurrenceDays: number[] | { targetCount: number } | null;
   scheduledTime: string | null;
   isActive: boolean;
   createdAt: string;

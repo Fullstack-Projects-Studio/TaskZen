@@ -3,25 +3,40 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { format, subDays, getDay, getDate } from "date-fns";
 
-function getApplicableTaskCount(
-  tasks: { recurrence: string }[],
+function isTaskApplicableOnDate(
+  task: { recurrence: string; recurrenceDays?: unknown },
   date: Date
-): number {
+): boolean {
   const dayOfWeek = getDay(date);
   const dayOfMonth = getDate(date);
 
-  return tasks.filter((task) => {
-    switch (task.recurrence) {
-      case "DAILY":
-        return true;
-      case "WEEKLY":
-        return dayOfWeek === 1;
-      case "MONTHLY":
-        return dayOfMonth === 1;
-      default:
-        return true;
+  switch (task.recurrence) {
+    case "DAILY":
+      return true;
+    case "WEEKLY":
+      return dayOfWeek === 1;
+    case "MONTHLY":
+      return dayOfMonth === 1;
+    case "CUSTOM_WEEKLY": {
+      const days = Array.isArray(task.recurrenceDays) ? task.recurrenceDays : [];
+      return days.includes(dayOfWeek);
     }
-  }).length;
+    case "CUSTOM_MONTHLY": {
+      const dates = Array.isArray(task.recurrenceDays) ? task.recurrenceDays : [];
+      return dates.includes(dayOfMonth);
+    }
+    case "FLEXIBLE_WEEKLY":
+      return true; // Always applicable, user chooses when
+    default:
+      return true;
+  }
+}
+
+function getApplicableTaskCount(
+  tasks: { recurrence: string; recurrenceDays?: unknown }[],
+  date: Date
+): number {
+  return tasks.filter((task) => isTaskApplicableOnDate(task, date)).length;
 }
 
 export async function GET(request: Request) {
@@ -38,25 +53,27 @@ export async function GET(request: Request) {
     const month = monthParam ? parseInt(monthParam, 10) : new Date().getMonth();
     const year = yearParam ? parseInt(yearParam, 10) : new Date().getFullYear();
 
-    // Validate month and year
     if (isNaN(month) || isNaN(year) || month < 0 || month > 11 || year < 1900 || year > 2100) {
       return NextResponse.json({ error: "Invalid month or year" }, { status: 400 });
     }
 
     const userId = session.user.id;
 
-    // Use UTC dates consistently to match completions route
     const startDate = new Date(Date.UTC(year, month, 1));
     const endDate = new Date(Date.UTC(year, month + 1, 0));
 
-    // Get all active tasks
-    const allTasks = await prisma.task.findMany({
-      where: { userId, isActive: true },
-    });
+    const [allTasks, user] = await Promise.all([
+      prisma.task.findMany({
+        where: { userId, isActive: true },
+      }),
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: { xp: true, level: true, bestStreak: true },
+      }),
+    ]);
 
     const totalTasks = allTasks.length;
 
-    // Get completions for the month
     const completions = await prisma.taskCompletion.findMany({
       where: {
         userId,
@@ -65,14 +82,12 @@ export async function GET(request: Request) {
       include: { task: true },
     });
 
-    // Today's completions
     const now = new Date();
     const todayStr = format(now, "yyyy-MM-dd");
     const todayCompletions = completions.filter(
       (c) => format(new Date(c.date), "yyyy-MM-dd") === todayStr
     );
 
-    // Monthly rate: completions / expected (accounting for recurrence)
     const daysElapsed = Math.min(now.getDate(), endDate.getUTCDate());
 
     let expectedCompletions = 0;
@@ -85,7 +100,6 @@ export async function GET(request: Request) {
       ? Math.round((completions.length / expectedCompletions) * 100)
       : 0;
 
-    // Category breakdown
     const categoryMap: Record<string, { total: number; completed: number }> = {};
     completions.forEach((c) => {
       const cat = c.task.category;
@@ -98,20 +112,14 @@ export async function GET(request: Request) {
       let taskApplicableDays = 0;
       for (let d = 1; d <= daysElapsed; d++) {
         const date = new Date(Date.UTC(year, month, d));
-        const dayOfWeek = getDay(date);
-        const dayOfMonth = getDate(date);
-        if (
-          t.recurrence === "DAILY" ||
-          (t.recurrence === "WEEKLY" && dayOfWeek === 1) ||
-          (t.recurrence === "MONTHLY" && dayOfMonth === 1)
-        ) {
+        if (isTaskApplicableOnDate(t, date)) {
           taskApplicableDays++;
         }
       }
       categoryMap[t.category].total += taskApplicableDays;
     });
 
-    // Streak calculation - single batch query
+    // Streak calculation
     let streak = 0;
     const today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
 
@@ -151,9 +159,16 @@ export async function GET(request: Request) {
           break;
         }
       }
+
+      // Update bestStreak if current streak is higher
+      if (user && streak > user.bestStreak) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: { bestStreak: streak },
+        });
+      }
     }
 
-    // Recent activity — distinct by task+date
     const recentActivity = await prisma.taskCompletion.findMany({
       where: { userId },
       include: { task: { select: { title: true, category: true, color: true } } },
@@ -170,6 +185,9 @@ export async function GET(request: Request) {
       totalCompletions: completions.length,
       categoryBreakdown: categoryMap,
       recentActivity,
+      xp: user?.xp ?? 0,
+      level: user?.level ?? 1,
+      bestStreak: user?.bestStreak ?? 0,
     });
   } catch (error) {
     console.error("Stats API error:", error);
