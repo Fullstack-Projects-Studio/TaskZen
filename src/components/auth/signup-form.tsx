@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -27,6 +27,14 @@ export function SignupForm() {
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [savedFormData, setSavedFormData] = useState<SignupInput | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error === "NoAccount") {
+      toast.error("No account found with this Google email. Please sign up first to create your account.");
+    }
+  }, [searchParams]);
 
   const { register, handleSubmit, formState: { errors } } = useForm<SignupInput>({
     resolver: zodResolver(signupSchema),

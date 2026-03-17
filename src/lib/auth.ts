@@ -40,8 +40,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         });
 
         if (!existingUser) {
-          // Block sign-in if user doesn't have an account
-          return false;
+          // Redirect to signup page with error message
+          return "/signup?error=NoAccount";
         } else {
           user.id = existingUser.id;
           // Update image if not set

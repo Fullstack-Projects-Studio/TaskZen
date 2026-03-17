@@ -25,7 +25,9 @@ export function LoginForm() {
 
   useEffect(() => {
     const error = searchParams.get("error");
-    if (error === "AccessDenied") {
+    if (error === "AccountDeleted") {
+      toast.error("Your account has been deleted by the admin. You can no longer access this application.");
+    } else if (error === "AccessDenied") {
       toast.error("No account found with this Google email. Please sign up first.");
     } else if (error === "OAuthAccountNotLinked") {
       toast.error("This email is already linked to a different sign-in method.");
