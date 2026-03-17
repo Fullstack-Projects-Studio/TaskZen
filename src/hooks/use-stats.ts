@@ -33,5 +33,6 @@ export function useStats(month?: number, year?: number) {
       if (!res.ok) throw new Error("Failed to fetch stats");
       return res.json();
     },
+    staleTime: 10 * 60 * 1000,
   });
 }

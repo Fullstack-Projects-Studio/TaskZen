@@ -100,9 +100,8 @@ export function useToggleCompletion() {
       toast.error(_err.message || "Failed to toggle completion");
     },
     onSettled: () => {
-      // Refetch in background to sync with server
+      // Refetch completions in background to sync with server
       queryClient.invalidateQueries({ queryKey: ["completions"] });
-      queryClient.invalidateQueries({ queryKey: ["stats"] });
     },
   });
 }

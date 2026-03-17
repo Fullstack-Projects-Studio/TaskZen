@@ -86,18 +86,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.verifiedAt = Date.now();
       }
 
-      // Verify user still exists in database on every request
+      // Only verify user existence every 5 minutes instead of every request
       if (token.id) {
-        const existingUser = await prisma.user.findUnique({
-          where: { id: token.id as string },
-          select: { id: true },
-        });
+        const lastVerified = (token.verifiedAt as number) || 0;
+        const fiveMinutes = 5 * 60 * 1000;
 
-        if (!existingUser) {
-          // User has been deleted — invalidate the token
-          token.id = null;
+        if (Date.now() - lastVerified > fiveMinutes) {
+          try {
+            const existingUser = await prisma.user.findUnique({
+              where: { id: token.id as string },
+              select: { id: true },
+            });
+
+            if (!existingUser) {
+              token.id = null;
+              token.verifiedAt = null;
+            } else {
+              token.verifiedAt = Date.now();
+            }
+          } catch {
+            // DB unreachable — keep token valid, retry next time
+          }
         }
       }
 

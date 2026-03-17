@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, type HTMLMotionProps } from "framer-motion";
+import { motion, useInView, type HTMLMotionProps } from "framer-motion";
+import { useRef } from "react";
 
 export function FadeIn({
   children,
@@ -96,6 +97,29 @@ export function ScaleIn({
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3, delay, type: "spring" }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+export function ScrollFadeIn({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-80px" });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 30 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className={className}
     >
       {children}
     </motion.div>

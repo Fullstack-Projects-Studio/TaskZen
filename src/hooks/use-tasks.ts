@@ -139,7 +139,6 @@ export function useToggleTaskActive() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      queryClient.invalidateQueries({ queryKey: ["stats"] });
     },
   });
 }

@@ -1,18 +1,47 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import { StatsCards } from "@/components/dashboard/stats-cards";
-import { CompletionPieChart } from "@/components/dashboard/completion-pie-chart";
-import { CategoryChart } from "@/components/dashboard/category-chart";
-import { StreakCounter } from "@/components/dashboard/streak-counter";
-import { RecentActivity } from "@/components/dashboard/recent-activity";
-import { MotivationCard } from "@/components/dashboard/motivation-card";
-import { XpLevelCard } from "@/components/dashboard/xp-level-card";
-import { BadgesCard } from "@/components/dashboard/badges-card";
-import { ReflectionPrompt } from "@/components/dashboard/reflection-prompt";
-import { RoutineSummaryCard } from "@/components/dashboard/routine-summary-card";
 import { useStats } from "@/hooks/use-stats";
 import { usePhotoStats } from "@/hooks/use-photo-stats";
+
+const CompletionPieChart = dynamic(
+  () => import("@/components/dashboard/completion-pie-chart").then((m) => m.CompletionPieChart),
+  { ssr: false }
+);
+const CategoryChart = dynamic(
+  () => import("@/components/dashboard/category-chart").then((m) => m.CategoryChart),
+  { ssr: false }
+);
+const StreakCounter = dynamic(
+  () => import("@/components/dashboard/streak-counter").then((m) => m.StreakCounter),
+  { ssr: false }
+);
+const RecentActivity = dynamic(
+  () => import("@/components/dashboard/recent-activity").then((m) => m.RecentActivity),
+  { ssr: false }
+);
+const MotivationCard = dynamic(
+  () => import("@/components/dashboard/motivation-card").then((m) => m.MotivationCard),
+  { ssr: false }
+);
+const XpLevelCard = dynamic(
+  () => import("@/components/dashboard/xp-level-card").then((m) => m.XpLevelCard),
+  { ssr: false }
+);
+const BadgesCard = dynamic(
+  () => import("@/components/dashboard/badges-card").then((m) => m.BadgesCard),
+  { ssr: false }
+);
+const ReflectionPrompt = dynamic(
+  () => import("@/components/dashboard/reflection-prompt").then((m) => m.ReflectionPrompt),
+  { ssr: false }
+);
+const RoutineSummaryCard = dynamic(
+  () => import("@/components/dashboard/routine-summary-card").then((m) => m.RoutineSummaryCard),
+  { ssr: false }
+);
 
 export default function DashboardPage() {
   const { data: session } = useSession();
