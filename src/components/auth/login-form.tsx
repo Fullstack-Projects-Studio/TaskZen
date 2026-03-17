@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
+import { signIn, signOut } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -26,6 +26,8 @@ export function LoginForm() {
   useEffect(() => {
     const error = searchParams.get("error");
     if (error === "AccountDeleted") {
+      // Clear the invalid session cookie so user won't redirect loop
+      signOut({ redirect: false });
       toast.error("Your account has been deleted by the admin. You can no longer access this application.");
     } else if (error === "AccessDenied") {
       toast.error("No account found with this Google email. Please sign up first.");

@@ -18,7 +18,9 @@ export const authConfig: NextAuthConfig = {
         return false; // Redirect to login
       }
 
-      if (isLoggedIn && (nextUrl.pathname === "/login" || nextUrl.pathname === "/signup")) {
+      // Don't redirect to dashboard if there's an error param (e.g. deleted account)
+      const hasError = nextUrl.searchParams.has("error");
+      if (isLoggedIn && !hasError && (nextUrl.pathname === "/login" || nextUrl.pathname === "/signup")) {
         return Response.redirect(new URL("/dashboard", nextUrl));
       }
 
