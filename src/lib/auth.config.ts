@@ -7,7 +7,7 @@ export const authConfig: NextAuthConfig = {
   },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user?.id;
+      const isLoggedIn = !!auth?.user;
       const isOnDashboard = nextUrl.pathname.startsWith("/dashboard") ||
         nextUrl.pathname.startsWith("/tasks") ||
         nextUrl.pathname.startsWith("/monthly") ||
