@@ -40,16 +40,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         });
 
         if (!existingUser) {
-          // Create new user from Google
-          const newUser = await prisma.user.create({
-            data: {
-              email: user.email!,
-              name: user.name,
-              image: user.image,
-              emailVerified: new Date(),
-            },
-          });
-          user.id = newUser.id;
+          // Block sign-in if user doesn't have an account
+          return false;
         } else {
           user.id = existingUser.id;
           // Update image if not set
