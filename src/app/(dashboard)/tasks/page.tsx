@@ -35,7 +35,7 @@ export default function TasksPage() {
       />
 
       <motion.div
-        className="fixed bottom-6 right-6 md:hidden"
+        className="fixed bottom-24 right-6 md:hidden"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
       >

@@ -3,7 +3,7 @@
 import { useSession, signOut } from "next-auth/react";
 import { useTheme } from "next-themes";
 import { motion } from "framer-motion";
-import { Moon, Sun, LogOut, Menu } from "lucide-react";
+import { Moon, Sun, LogOut } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -13,8 +13,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { MobileNav } from "./mobile-nav";
 
 export function Header() {
   const { data: session } = useSession();
@@ -32,18 +30,13 @@ export function Header() {
       animate={{ opacity: 1, y: 0 }}
       className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-card px-4 md:px-6"
     >
-      <Sheet>
-        <SheetTrigger
-          render={
-            <Button variant="ghost" size="icon" className="md:hidden">
-              <Menu className="h-5 w-5" />
-            </Button>
-          }
-        />
-        <SheetContent side="left" className="w-64 p-0">
-          <MobileNav />
-        </SheetContent>
-      </Sheet>
+      <span className="text-sm font-medium text-muted-foreground md:hidden">
+        {new Date().toLocaleDateString("en-US", {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+        })}
+      </span>
 
       <div className="flex-1" />
 
