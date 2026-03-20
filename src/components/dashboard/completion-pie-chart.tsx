@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Stats } from "@/hooks/use-stats";
 import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 
 interface CompletionPieChartProps {
   stats: Stats | undefined;
@@ -15,6 +16,9 @@ export function CompletionPieChart({ stats, isLoading }: CompletionPieChartProps
   const totalTasks = stats?.totalTasks ?? 0;
   const rate = stats?.completionRate ?? 0;
   const missed = Math.max(0, 100 - rate);
+
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   const [animatedRate, setAnimatedRate] = useState(0);
 
@@ -105,19 +109,20 @@ export function CompletionPieChart({ stats, isLoading }: CompletionPieChartProps
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.3 }}
     >
-      <Card className="bg-[#0a0a0f] border-[#1a1a2e] overflow-hidden relative">
+      <Card className={`overflow-hidden relative ${isDark ? "bg-[#0a0a0f] border-[#1a1a2e]" : "bg-white border-border"}`}>
         {/* Subtle grid background */}
         <div
-          className="absolute inset-0 opacity-[0.03]"
+          className={`absolute inset-0 ${isDark ? "opacity-[0.03]" : "opacity-[0.06]"}`}
           style={{
-            backgroundImage:
-              "linear-gradient(rgba(0,255,136,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,136,0.3) 1px, transparent 1px)",
+            backgroundImage: isDark
+              ? "linear-gradient(rgba(0,255,136,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,136,0.3) 1px, transparent 1px)"
+              : "linear-gradient(rgba(16,185,129,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.2) 1px, transparent 1px)",
             backgroundSize: "30px 30px",
           }}
         />
 
         <CardHeader className="relative z-10 pb-0">
-          <CardTitle className="text-lg text-gray-200 tracking-wide">
+          <CardTitle className={`text-lg tracking-wide ${isDark ? "text-gray-200" : "text-gray-800"}`}>
             Completion Rate
           </CardTitle>
         </CardHeader>
@@ -125,7 +130,7 @@ export function CompletionPieChart({ stats, isLoading }: CompletionPieChartProps
         <CardContent className="relative z-10 flex flex-col items-center pt-2">
           {isLoading ? (
             <div className="h-[280px] flex items-center justify-center">
-              <span className="text-emerald-400/60 animate-pulse font-mono text-sm">
+              <span className={`animate-pulse font-mono text-sm ${isDark ? "text-emerald-400/60" : "text-emerald-600/60"}`}>
                 Initializing...
               </span>
             </div>
@@ -173,8 +178,8 @@ export function CompletionPieChart({ stats, isLoading }: CompletionPieChartProps
 
                     {/* Inner glow gradient */}
                     <radialGradient id="innerGlow" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stopColor="#00ff8820" />
-                      <stop offset="70%" stopColor="#00ff8808" />
+                      <stop offset="0%" stopColor={isDark ? "#00ff8820" : "#10b98115"} />
+                      <stop offset="70%" stopColor={isDark ? "#00ff8808" : "#10b98108"} />
                       <stop offset="100%" stopColor="transparent" />
                     </radialGradient>
                   </defs>
@@ -190,7 +195,7 @@ export function CompletionPieChart({ stats, isLoading }: CompletionPieChartProps
                       y1={tick.innerPos.y}
                       x2={tick.outerPos.x}
                       y2={tick.outerPos.y}
-                      stroke="#1e3a2a"
+                      stroke={isDark ? "#1e3a2a" : "#d1d5db"}
                       strokeWidth={0.5}
                     />
                   ))}
@@ -203,7 +208,7 @@ export function CompletionPieChart({ stats, isLoading }: CompletionPieChartProps
                         y1={tick.innerPos.y}
                         x2={tick.outerPos.x}
                         y2={tick.outerPos.y}
-                        stroke={tick.isMajor ? "#2dd4bf40" : "#1e3a2a"}
+                        stroke={tick.isMajor ? (isDark ? "#2dd4bf40" : "#10b98150") : (isDark ? "#1e3a2a" : "#d1d5db")}
                         strokeWidth={tick.isMajor ? 1.5 : 0.8}
                       />
                       {tick.isMajor && (
@@ -212,7 +217,7 @@ export function CompletionPieChart({ stats, isLoading }: CompletionPieChartProps
                           y={tick.labelPos.y}
                           textAnchor="middle"
                           dominantBaseline="central"
-                          fill="#2dd4bf60"
+                          fill={isDark ? "#2dd4bf60" : "#6b7280"}
                           fontSize="7"
                           fontFamily="monospace"
                         >
@@ -222,13 +227,13 @@ export function CompletionPieChart({ stats, isLoading }: CompletionPieChartProps
                     </g>
                   ))}
 
-                  {/* Background ring (dark track) */}
+                  {/* Background ring (track) */}
                   <circle
                     cx={cx}
                     cy={cy}
                     r={outerR}
                     fill="none"
-                    stroke="#1a1a2e"
+                    stroke={isDark ? "#1a1a2e" : "#e5e7eb"}
                     strokeWidth={outerWidth}
                   />
                   <circle
@@ -236,7 +241,7 @@ export function CompletionPieChart({ stats, isLoading }: CompletionPieChartProps
                     cy={cy}
                     r={innerR}
                     fill="none"
-                    stroke="#111122"
+                    stroke={isDark ? "#111122" : "#f3f4f6"}
                     strokeWidth={innerWidth}
                   />
                   <circle
@@ -244,7 +249,7 @@ export function CompletionPieChart({ stats, isLoading }: CompletionPieChartProps
                     cy={cy}
                     r={glowR}
                     fill="none"
-                    stroke="#0d0d1a"
+                    stroke={isDark ? "#0d0d1a" : "#f9fafb"}
                     strokeWidth={glowWidth}
                   />
 
@@ -326,7 +331,7 @@ export function CompletionPieChart({ stats, isLoading }: CompletionPieChartProps
                   )}
 
                   {/* Decorative corner brackets */}
-                  <g stroke="#2dd4bf30" strokeWidth="1" fill="none">
+                  <g stroke={isDark ? "#2dd4bf30" : "#10b98130"} strokeWidth="1" fill="none">
                     <polyline points="20,30 20,20 30,20" />
                     <polyline points="270,20 280,20 280,30" />
                     <polyline points="280,270 280,280 270,280" />
@@ -338,11 +343,11 @@ export function CompletionPieChart({ stats, isLoading }: CompletionPieChartProps
                     x={cx}
                     y={cy - 16}
                     textAnchor="middle"
-                    fill="#00ff88"
+                    fill={isDark ? "#00ff88" : "#059669"}
                     fontSize="36"
                     fontWeight="bold"
                     fontFamily="monospace"
-                    filter="url(#glowCyan)"
+                    filter={isDark ? "url(#glowCyan)" : undefined}
                   >
                     {animatedRate}%
                   </text>
@@ -350,7 +355,7 @@ export function CompletionPieChart({ stats, isLoading }: CompletionPieChartProps
                     x={cx}
                     y={cy + 8}
                     textAnchor="middle"
-                    fill="#94a3b8"
+                    fill={isDark ? "#94a3b8" : "#6b7280"}
                     fontSize="10"
                     fontFamily="monospace"
                     letterSpacing="1"
@@ -361,7 +366,7 @@ export function CompletionPieChart({ stats, isLoading }: CompletionPieChartProps
                     x={cx}
                     y={cy + 24}
                     textAnchor="middle"
-                    fill="#64748b"
+                    fill={isDark ? "#64748b" : "#9ca3af"}
                     fontSize="9"
                     fontFamily="monospace"
                   >
@@ -385,10 +390,10 @@ export function CompletionPieChart({ stats, isLoading }: CompletionPieChartProps
                     className="w-3 h-3 rounded-full"
                     style={{
                       background: "#10b981",
-                      boxShadow: "0 0 8px #10b98180",
+                      boxShadow: isDark ? "0 0 8px #10b98180" : "none",
                     }}
                   />
-                  <span className="text-sm font-mono text-gray-400">
+                  <span className={`text-sm font-mono ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                     Completed: {rate}%
                   </span>
                 </div>
@@ -397,17 +402,17 @@ export function CompletionPieChart({ stats, isLoading }: CompletionPieChartProps
                     className="w-3 h-3 rounded-full"
                     style={{
                       background: "#ef4444",
-                      boxShadow: "0 0 8px #ef444480",
+                      boxShadow: isDark ? "0 0 8px #ef444480" : "none",
                     }}
                   />
-                  <span className="text-sm font-mono text-gray-400">
+                  <span className={`text-sm font-mono ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                     Missed: {missed}%
                   </span>
                 </div>
               </div>
 
               {/* Bottom info line */}
-              <p className="text-center text-xs text-emerald-400/40 mt-3 font-mono tracking-wider">
+              <p className={`text-center text-xs mt-3 font-mono tracking-wider ${isDark ? "text-emerald-400/40" : "text-emerald-600/60"}`}>
                 This Month: {completed} Completions, {Math.max(0, totalTasks - completed)} Missed
               </p>
             </>
