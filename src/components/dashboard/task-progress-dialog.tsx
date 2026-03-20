@@ -89,11 +89,48 @@ function TaskProgressCard({ task }: { task: TaskProgressData }) {
   );
 }
 
+const STORAGE_KEY = "task-progress-dialog";
+
+function shouldShowDialog(): boolean {
+  const now = new Date();
+  const today = now.toDateString();
+  const isEvening = now.getHours() >= 20;
+  const slot = isEvening ? "evening" : "day";
+
+  try {
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    // Different day — always show
+    if (stored.date !== today) return true;
+    // Same day — only show if this slot hasn't been shown yet
+    return stored[slot] !== true;
+  } catch {
+    return true;
+  }
+}
+
+function markDialogShown() {
+  const now = new Date();
+  const today = now.toDateString();
+  const isEvening = now.getHours() >= 20;
+  const slot = isEvening ? "evening" : "day";
+
+  try {
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    // Reset if it's a new day
+    const data = stored.date === today ? stored : { date: today };
+    data[slot] = true;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch {
+    // ignore storage errors
+  }
+}
+
 export function TaskProgressDialog() {
   const [open, setOpen] = useState(false);
   const { data: tasks, isLoading } = useTaskProgress();
 
   useEffect(() => {
+    if (!shouldShowDialog()) return;
     const timer = setTimeout(() => setOpen(true), 500);
     return () => clearTimeout(timer);
   }, []);
@@ -102,8 +139,13 @@ export function TaskProgressDialog() {
 
   if (isLoading || activeTasks.length === 0) return null;
 
+  function handleClose() {
+    markDialogShown();
+    setOpen(false);
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); }}>
       <DialogContent className="sm:max-w-lg max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-lg">Task Progress</DialogTitle>
@@ -119,7 +161,7 @@ export function TaskProgressDialog() {
           <Button
             className="w-full"
             variant="outline"
-            onClick={() => setOpen(false)}
+            onClick={handleClose}
           >
             Got it
           </Button>

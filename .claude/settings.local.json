@@ -16,7 +16,9 @@
       "Bash(npm run build:*)",
       "Bash(npm run dev:*)",
       "Bash(head:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(git reset:*)"
     ]
   }
 }
