@@ -179,6 +179,14 @@ export function LoginForm() {
               {errors.password && (
                 <p className="text-sm text-destructive">{errors.password.message}</p>
               )}
+              <div className="flex justify-end">
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
             </motion.div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4 border-0 bg-transparent px-4 pt-6 pb-6">
