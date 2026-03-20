@@ -15,6 +15,8 @@ export interface Task {
   recurrenceDays: number[] | { targetCount: number } | null;
   scheduledTime: string | null;
   isActive: boolean;
+  startDate: string;
+  endDate: string;
   createdAt: string;
   updatedAt: string;
 }

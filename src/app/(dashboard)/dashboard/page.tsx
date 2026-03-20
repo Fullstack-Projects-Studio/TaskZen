@@ -42,6 +42,10 @@ const RoutineSummaryCard = dynamic(
   () => import("@/components/dashboard/routine-summary-card").then((m) => m.RoutineSummaryCard),
   { ssr: false }
 );
+const TaskProgressDialog = dynamic(
+  () => import("@/components/dashboard/task-progress-dialog").then((m) => m.TaskProgressDialog),
+  { ssr: false }
+);
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -50,6 +54,7 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      <TaskProgressDialog />
       <div>
         <h1 className="text-2xl font-bold">
           Welcome back, {session?.user?.name?.split(" ")[0] || "there"}

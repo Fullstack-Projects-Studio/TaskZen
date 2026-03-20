@@ -22,6 +22,14 @@ export const taskSchema = z
       .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Time must be in HH:MM format")
       .optional()
       .or(z.literal("")),
+    startDate: z
+      .string()
+      .min(1, "Start date is required")
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be yyyy-MM-dd"),
+    endDate: z
+      .string()
+      .min(1, "End date is required")
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be yyyy-MM-dd"),
   })
   .refine(
     (data) => {
@@ -74,6 +82,18 @@ export const taskSchema = z
     {
       message: "Set a target count (1-7) for Flexible Weekly",
       path: ["recurrenceDays"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.startDate && data.endDate) {
+        return data.endDate >= data.startDate;
+      }
+      return true;
+    },
+    {
+      message: "End date must be on or after start date",
+      path: ["endDate"],
     }
   );
 

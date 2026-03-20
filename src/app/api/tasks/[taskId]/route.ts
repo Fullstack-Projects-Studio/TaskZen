@@ -45,13 +45,15 @@ export async function PUT(
       return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
     }
 
-    const { recurrenceDays, ...rest } = parsed.data;
+    const { recurrenceDays, startDate, endDate, ...rest } = parsed.data;
 
     const task = await prisma.task.updateMany({
       where: { id: taskId, userId: session.user.id },
       data: {
         ...rest,
         recurrenceDays: recurrenceDays ?? null,
+        startDate: startDate ? new Date(startDate + "T00:00:00Z") : null,
+        endDate: endDate ? new Date(endDate + "T00:00:00Z") : null,
       },
     });
 

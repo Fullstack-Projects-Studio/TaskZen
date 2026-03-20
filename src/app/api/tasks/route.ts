@@ -56,12 +56,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
     }
 
-    const { recurrenceDays, ...rest } = parsed.data;
+    const { recurrenceDays, startDate, endDate, ...rest } = parsed.data;
 
     const task = await prisma.task.create({
       data: {
         ...rest,
         recurrenceDays: recurrenceDays ?? undefined,
+        startDate: startDate ? new Date(startDate + "T00:00:00Z") : null,
+        endDate: endDate ? new Date(endDate + "T00:00:00Z") : null,
         userId: session.user.id,
       },
     });

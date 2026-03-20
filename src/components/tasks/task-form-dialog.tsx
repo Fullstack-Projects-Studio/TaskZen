@@ -45,6 +45,8 @@ export function TaskFormDialog({ open, onOpenChange, task }: TaskFormDialogProps
       recurrence: "DAILY",
       scheduledTime: "",
       recurrenceDays: undefined,
+      startDate: "",
+      endDate: "",
     },
   });
 
@@ -58,6 +60,8 @@ export function TaskFormDialog({ open, onOpenChange, task }: TaskFormDialogProps
         recurrence: task.recurrence,
         scheduledTime: task.scheduledTime || "",
         recurrenceDays: task.recurrenceDays ?? undefined,
+        startDate: task.startDate ? task.startDate.slice(0, 10) : "",
+        endDate: task.endDate ? task.endDate.slice(0, 10) : "",
       });
     } else {
       reset({
@@ -68,6 +72,8 @@ export function TaskFormDialog({ open, onOpenChange, task }: TaskFormDialogProps
         recurrence: "DAILY",
         scheduledTime: "",
         recurrenceDays: undefined,
+        startDate: "",
+        endDate: "",
       });
     }
   }, [task, reset]);
@@ -131,7 +137,7 @@ export function TaskFormDialog({ open, onOpenChange, task }: TaskFormDialogProps
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">Title <span className="text-destructive">*</span></Label>
             <Input id="title" placeholder="e.g., Morning workout" {...register("title")} />
             {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
           </div>
@@ -143,7 +149,7 @@ export function TaskFormDialog({ open, onOpenChange, task }: TaskFormDialogProps
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Category</Label>
+              <Label>Category <span className="text-destructive">*</span></Label>
               <Select value={selectedCategory} onValueChange={handleCategoryChange}>
                 <SelectTrigger>
                   <SelectValue />
@@ -165,7 +171,7 @@ export function TaskFormDialog({ open, onOpenChange, task }: TaskFormDialogProps
             </div>
 
             <div className="space-y-2">
-              <Label>Recurrence</Label>
+              <Label>Recurrence <span className="text-destructive">*</span></Label>
               <Select
                 value={selectedRecurrence}
                 onValueChange={handleRecurrenceChange}
@@ -275,6 +281,23 @@ export function TaskFormDialog({ open, onOpenChange, task }: TaskFormDialogProps
           <div className="space-y-2">
             <Label htmlFor="scheduledTime">Scheduled Time (optional)</Label>
             <Input id="scheduledTime" type="time" {...register("scheduledTime")} />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="startDate">Start Date <span className="text-destructive">*</span></Label>
+              <Input id="startDate" type="date" {...register("startDate")} />
+              {errors.startDate && (
+                <p className="text-sm text-destructive">{String(errors.startDate.message)}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="endDate">End Date <span className="text-destructive">*</span></Label>
+              <Input id="endDate" type="date" {...register("endDate")} />
+              {errors.endDate && (
+                <p className="text-sm text-destructive">{String(errors.endDate.message)}</p>
+              )}
+            </div>
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
